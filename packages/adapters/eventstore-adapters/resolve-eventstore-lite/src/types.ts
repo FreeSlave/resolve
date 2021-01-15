@@ -1,4 +1,5 @@
 import type { open } from 'sqlite'
+import type { BaseAdapterPool, AdapterFunctions } from 'resolve-eventstore-base'
 export type SqliteOpen = typeof open
 
 export type MemoryStore = {
@@ -6,15 +7,13 @@ export type MemoryStore = {
   drop: () => void
 }
 
-export type AdapterPool = {
+export type AdapterPool = BaseAdapterPool & {
   config: {
     databaseFile: string
     secretsTableName: string
     eventsTableName: string
     snapshotsTableName: string
   }
-  maybeThrowResourceError: (error: Error[]) => void
-  coerceEmptyString: (obj: any, fallback?: string) => string
   database: any
   eventsTableName: string
   snapshotsTableName: string
@@ -22,7 +21,6 @@ export type AdapterPool = {
   escapeId: (source: string) => string
   escape: (source: string) => string
   memoryStore: MemoryStore
-  shapeEvent: (event: any) => any
 }
 
 export type AdapterSpecific = {
@@ -30,4 +28,8 @@ export type AdapterSpecific = {
   tmp: any
   os: any
   fs: any
+}
+
+export type SqliteAdapterFunctions = AdapterFunctions<AdapterPool> & {
+  specific: AdapterSpecific
 }

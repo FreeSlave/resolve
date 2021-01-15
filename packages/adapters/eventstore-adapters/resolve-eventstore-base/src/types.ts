@@ -1,27 +1,44 @@
 import { SecretsManager } from 'resolve-core'
+import { maybeThrowResourceError } from './resource-errors'
 
-export type AdapterPool = {
-  config: {
-    options: any
-  }
+type ShapeEvent = (event: any, additionalFields: any) => any
+
+export type BaseAdapterPool = {
+  config: any
   disposed: boolean
   validateEventFilter: any
-}
-export type BaseAdapterPool = CreateAdapter<AdapterPool, any>
 
-export type BaseEventStream = {
-  pool: BaseAdapterPool
-  maintenanceMode: symbol
-  byteOffset: number
+  injectEvent: any
+  loadEventsByCursor: any
+  loadEventsByTimestamp: any
+  deleteSecret?: any
+  getSecret?: any
+  setSecret?: any
+  waitConnect: any
+  wrapMethod: any
+  maybeThrowResourceError: (error: Error[]) => void
+  coerceEmptyString: (obj: any, fallback?: string) => string
+  isFrozen?: any
+  connectPromise?: any
+  connectPromiseResolve?: any
+  shapeEvent: ShapeEvent
+  counters: any
+  bucketSize: number
 }
 
-export type Context = {
-  pool: BaseAdapterPool
-  maintenanceMode: symbol
-  cursor: string | null
-  bufferSize: number
-  isBufferOverflow: boolean
-}
+// export type BaseEventStream = {
+//   pool: BaseAdapterPool
+//   maintenanceMode: symbol
+//   byteOffset: number
+// }
+
+// export type Context = {
+//   pool: BaseAdapterPool
+//   maintenanceMode: symbol
+//   cursor: string | null
+//   bufferSize: number
+//   isBufferOverflow: boolean
+// }
 
 export type EventsWithCursor = {
   cursor: string | null
@@ -40,19 +57,33 @@ export type CursorFilter = EventFilter & {
   limit: number
 }
 
-export interface CreateAdapter<AdapterPool, AdapterSpecific> {
+export interface CommonAdapterFunctions {
+  maybeThrowResourceError: typeof maybeThrowResourceError
+  wrapMethod: (...args: any) => Promise<any>
+  wrapEventFilter: any
+  wrapSaveEvent: any
+  wrapDispose: any
+  validateEventFilter: any
+  loadEvents: any
+  importStream: any
+  exportStream: any
+  incrementalImport: any
+  getNextCursor: any
+}
+
+export interface AdapterFunctions<AdapterPool extends BaseAdapterPool> {
   beginIncrementalImport: (arg0: AdapterPool) => Promise<string>
   commitIncrementalImport: (
     arg0: AdapterPool,
     importId: string
   ) => Promise<void>
-  connect: (pool: AdapterPool, specific: AdapterSpecific) => Promise<any>
+  connect: (pool: any, specific: any) => Promise<any>
   dispose: (pool: AdapterPool) => Promise<any>
   dropSnapshot: (pool: AdapterPool, snapshotKey: string) => Promise<any>
   drop: (pool: AdapterPool) => Promise<any>
   freeze: (arg0: AdapterPool) => Promise<void>
   getLatestEvent: (pool: AdapterPool, filter: EventFilter) => Promise<any>
-  getSecretsManager: (pool: AdapterPool) => SecretsManager
+  getSecretsManager?: (pool: AdapterPool) => SecretsManager
   init: (pool: AdapterPool) => Promise<any>
   injectEvent: (arg0: AdapterPool, event: any) => Promise<any>
   loadEventsByCursor: (
@@ -79,4 +110,13 @@ export interface CreateAdapter<AdapterPool, AdapterSpecific> {
   ) => Promise<any>
   shapeEvent: (event: any, additionalFields: any) => any
   unfreeze: (arg0: AdapterPool) => Promise<void>
+  isFrozen?: () => Promise<boolean>
+  getSecret?: (pool: AdapterPool, selector: string) => Promise<string | null>
+  setSecret?: (
+    pool: AdapterPool,
+    selector: string,
+    secret: string
+  ) => Promise<void>
+  deleteSecret?: (pool: AdapterPool, selector: string) => Promise<void>
+  specific: any
 }

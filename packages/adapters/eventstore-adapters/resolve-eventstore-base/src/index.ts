@@ -18,21 +18,36 @@ import getNextCursor from './get-next-cursor'
 import throwBadCursor from './throw-bad-cursor'
 import snapshotTrigger from './snapshot-trigger'
 import incrementalImport from './incremental-import'
-import { CursorFilter, EventsWithCursor, EventFilter } from './types'
+import {
+  CursorFilter,
+  EventsWithCursor,
+  EventFilter,
+  BaseAdapterPool,
+  AdapterFunctions,
+} from './types'
 
-const wrappedCreateAdapter: (...args: any[]) => any = createAdapter.bind(null, {
-  maybeThrowResourceError,
-  importStream,
-  exportStream,
-  wrapMethod,
-  wrapEventFilter,
-  wrapSaveEvent,
-  wrapDispose,
-  validateEventFilter,
-  loadEvents,
-  incrementalImport,
-  getNextCursor,
-})
+function wrappedCreateAdapter<
+  AdapterPool extends BaseAdapterPool,
+  MyAdapterFunctions extends AdapterFunctions<AdapterPool>
+>(adapterFunctions: MyAdapterFunctions, options: any): any {
+  return createAdapter<AdapterPool, MyAdapterFunctions>(
+    {
+      maybeThrowResourceError,
+      importStream,
+      exportStream,
+      wrapMethod,
+      wrapEventFilter,
+      wrapSaveEvent,
+      wrapDispose,
+      validateEventFilter,
+      loadEvents,
+      incrementalImport,
+      getNextCursor,
+    },
+    adapterFunctions,
+    options
+  )
+}
 
 export default wrappedCreateAdapter
 
@@ -48,4 +63,6 @@ export {
   CursorFilter,
   EventsWithCursor,
   EventFilter,
+  BaseAdapterPool,
+  AdapterFunctions,
 }

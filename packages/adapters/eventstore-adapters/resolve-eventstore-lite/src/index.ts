@@ -26,34 +26,42 @@ import saveSnapshot from './save-snapshot'
 import setSecret from './set-secret'
 import shapeEvent from './shape-event'
 import unfreeze from './unfreeze'
+import { AdapterPool, SqliteAdapterFunctions } from './types'
 
-const wrappedCreateAdapter: (...args: any[]) => any = createAdapter.bind(null, {
-  beginIncrementalImport,
-  commitIncrementalImport,
-  connect,
-  deleteSecret,
-  dispose,
-  dropSnapshot,
-  drop,
-  freeze,
-  getLatestEvent,
-  getSecret,
-  init,
-  injectEvent,
-  loadEventsByCursor,
-  loadEventsByTimestamp,
-  loadSnapshot,
-  pushIncrementalImport,
-  rollbackIncrementalImport,
-  saveEvent,
-  saveSnapshot,
-  setSecret,
-  shapeEvent,
-  unfreeze,
-  sqlite,
-  tmp,
-  os,
-  fs,
-})
+function wrappedCreateAdapter(options: any): any {
+  return createAdapter<AdapterPool, SqliteAdapterFunctions>(
+    {
+      beginIncrementalImport,
+      commitIncrementalImport,
+      connect,
+      deleteSecret,
+      dispose,
+      dropSnapshot,
+      drop,
+      freeze,
+      getLatestEvent,
+      getSecret,
+      init,
+      injectEvent,
+      loadEventsByCursor,
+      loadEventsByTimestamp,
+      loadSnapshot,
+      pushIncrementalImport,
+      rollbackIncrementalImport,
+      saveEvent,
+      saveSnapshot,
+      setSecret,
+      shapeEvent,
+      unfreeze,
+      specific: {
+        sqlite,
+        tmp,
+        os,
+        fs,
+      },
+    },
+    options
+  )
+}
 
 export default wrappedCreateAdapter

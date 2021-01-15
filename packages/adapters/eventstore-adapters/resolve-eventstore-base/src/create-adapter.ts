@@ -1,5 +1,9 @@
 import getLog from './get-log'
-import { AdapterPool } from './types'
+import {
+  CommonAdapterFunctions,
+  AdapterFunctions,
+  BaseAdapterPool,
+} from './types'
 import { LeveledDebugger } from 'resolve-debug-levels'
 
 // eslint-disable-next-line no-new-func
@@ -12,7 +16,10 @@ const coerceEmptyString = (obj: any, fallback?: string): string =>
       : 'default'
     : obj
 
-const createAdapter = (
+const createAdapter = <
+  AdapterPool extends BaseAdapterPool,
+  MyAdapterFunctions extends AdapterFunctions<AdapterPool>
+>(
   {
     maybeThrowResourceError,
     wrapMethod,
@@ -25,7 +32,7 @@ const createAdapter = (
     exportStream,
     incrementalImport,
     getNextCursor,
-  }: any,
+  }: CommonAdapterFunctions,
   {
     connect,
     loadEventsByCursor,
@@ -50,13 +57,13 @@ const createAdapter = (
     getSecret,
     setSecret,
     deleteSecret,
-    ...adapterSpecificArguments
-  }: any,
+    specific,
+  }: MyAdapterFunctions,
   options: any
 ): any => {
   const log: LeveledDebugger & debug.Debugger = getLog(`createAdapter`)
   const config: any = { ...options }
-  const originalPool: AdapterPool = {
+  const originalPool = {
     config,
     disposed: false,
     validateEventFilter,
@@ -74,7 +81,7 @@ const createAdapter = (
   let connectPromiseResolve
   const connectPromise = new Promise((resolve) => {
     connectPromiseResolve = resolve.bind(null, null)
-  }).then(connect.bind(null, originalPool, adapterSpecificArguments))
+  }).then(connect.bind(null, originalPool, specific))
 
   const pool = Object.assign(originalPool, {
     injectEvent: wrapMethod(originalPool, injectEvent),
